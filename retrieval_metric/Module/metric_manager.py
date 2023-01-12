@@ -5,12 +5,15 @@ import pickle
 
 import numpy as np
 import open3d as o3d
+from torch.utils.tensorboard import SummaryWriter
+
 from scan2cad_dataset_manage.Module.object_model_map_manager import \
     ObjectModelMapManager
 from points_shape_detect.Method.trans import normalizePointArray
 
 from retrieval_metric.Method.retrieval import getOursRetrievalResult
 from retrieval_metric.Method.distance import getChamferDistance
+from retrieval_metric.Method.time import getCurrentTime
 
 
 class MetricManager(object):
@@ -25,6 +28,28 @@ class MetricManager(object):
         self.rotate_error_list = []
         self.scale_error_list = []
 
+        self.step = 0
+        self.summary_writer = SummaryWriter("./logs/" + getCurrentTime() + "/")
+
+        self.loadScan2CADDataset()
+        self.loadUniformCADFeature()
+        return
+
+    def reset(self):
+        self.retrieval_class_accuracy_list = []
+        self.scan2ret_cd_list = []
+        self.ret2gt_cd_list = []
+        self.scan2gt_cd_list = []
+        self.scan2ret2gt_cd_list = []
+        self.trans_error_list = []
+        self.rotate_error_list = []
+        self.scale_error_list = []
+
+        self.step = 0
+        self.summary_writer = SummaryWriter("./logs/" + getCurrentTime() + "/")
+        return True
+
+    def loadScan2CADDataset(self):
         scannet_object_dataset_folder_path = "/home/chli/chLi/ScanNet/objects/"
         shapenet_dataset_folder_path = "/home/chli/chLi/ShapeNet/Core/ShapeNetCore.v2/"
         object_model_map_dataset_folder_path = "/home/chli/chLi/Scan2CAD/object_model_maps/"
@@ -32,13 +57,15 @@ class MetricManager(object):
         self.object_model_map_manager = ObjectModelMapManager(
             scannet_object_dataset_folder_path, shapenet_dataset_folder_path,
             object_model_map_dataset_folder_path)
+        return True
 
-        print("[INFO][MetricManager::__init__]")
+    def loadUniformCADFeature(self):
+        print("[INFO][MetricManager::loadUniformCADFeature]")
         print("\t start loading uniform_feature_dict...")
         uniform_feature_file_path = "/home/chli/chLi/ShapeNet/uniform_feature/uniform_feature.pkl"
         with open(uniform_feature_file_path, 'rb') as f:
             self.uniform_feature_dict = pickle.load(f)
-        return
+        return True
 
     def addObjectRetrievalResult(self,
                                  scannet_scene_name,
@@ -80,16 +107,22 @@ class MetricManager(object):
         scan2gt_cd = getChamferDistance(object_pcd, gt_cad_pcd)
         scan2ret2gt_cd = scan2ret_cd - scan2gt_cd
 
-        print(scan2ret_cd)
-        print(ret2gt_cd)
-        print(scan2gt_cd)
-        print(scan2ret2gt_cd)
         #  o3d.visualization.draw_geometries([object_pcd, retrieval_cad_mesh])
 
         self.scan2ret_cd_list.append(scan2ret_cd)
         self.ret2gt_cd_list.append(ret2gt_cd)
         self.scan2gt_cd_list.append(scan2gt_cd)
         self.scan2ret2gt_cd_list.append(scan2ret2gt_cd)
+
+        self.summary_writer.add_scalar("Retrieval/scan2ret_cd", scan2ret_cd,
+                                       self.step)
+        self.summary_writer.add_scalar("Retrieval/ret2gt_cd", ret2gt_cd,
+                                       self.step)
+        self.summary_writer.add_scalar("Retrieval/scan2gt_cd", scan2gt_cd,
+                                       self.step)
+        self.summary_writer.add_scalar("Retrieval/scan2ret2gt_cd",
+                                       scan2ret2gt_cd, self.step)
+        self.step += 1
         return True
 
     def addSceneRetrievalResult(self,
