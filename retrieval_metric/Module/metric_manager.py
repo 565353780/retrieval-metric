@@ -7,16 +7,19 @@ import numpy as np
 import open3d as o3d
 from scan2cad_dataset_manage.Module.object_model_map_manager import \
     ObjectModelMapManager
+from points_shape_detect.Method.trans import normalizePointArray
 
 from retrieval_metric.Method.retrieval import getOursRetrievalResult
+from retrieval_metric.Method.distance import getChamferDistance
 
 
 class MetricManager(object):
 
     def __init__(self):
         self.retrieval_class_accuracy_list = []
-        self.scan2cad_chamfer_dist_list = []
-        self.retrieval_chamfer_dist_list = []
+        self.scan2ret_chamfer_dist_list = []
+        self.ret2gt_chamfer_dist_list = []
+        self.scan2gt_chamfer_dist_list = []
         self.trans_error_list = []
         self.rotate_error_list = []
         self.scale_error_list = []
@@ -40,11 +43,50 @@ class MetricManager(object):
                                  scannet_scene_name,
                                  object_file_name,
                                  print_progress=False):
+        sample_point_num = 100000
+
         shapenet_model_dict = self.object_model_map_manager.getShapeNetModelDict(
             scannet_scene_name, object_file_name)
 
-        object_points, retrieval_cad_mesh = getOursRetrievalResult(
-            shapenet_model_dict, self.uniform_feature_dict, print_progress)
+        scannet_object_file_path = shapenet_model_dict[
+            'scannet_object_file_path']
+        shapenet_model_file_path = shapenet_model_dict[
+            'shapenet_model_file_path']
+        trans_matrix_inv = shapenet_model_dict['trans_matrix_inv']
+
+        object_pcd = o3d.io.read_point_cloud(scannet_object_file_path)
+        object_pcd.transform(trans_matrix_inv)
+        points = np.array(object_pcd.points)
+        points = normalizePointArray(points)
+        object_pcd.points = o3d.utility.Vector3dVector(points)
+
+        gt_cad_mesh = o3d.io.read_triangle_mesh(shapenet_model_file_path)
+        points = np.array(gt_cad_mesh.vertices)
+        points = normalizePointArray(points)
+        gt_cad_mesh.vertices = o3d.utility.Vector3dVector(points)
+
+        gt_cad_mesh.compute_triangle_normals()
+        gt_cad_pcd = gt_cad_mesh.sample_points_uniformly(sample_point_num)
+
+        retrieval_cad_mesh = getOursRetrievalResult(object_pcd,
+                                                    self.uniform_feature_dict,
+                                                    print_progress)
+        retrieval_cad_pcd = retrieval_cad_mesh.sample_points_uniformly(
+            sample_point_num)
+
+        scan2ret_chamfer_dist = getChamferDistance(object_pcd,
+                                                   retrieval_cad_pcd)
+        ret2gt_chamfer_dist = getChamferDistance(retrieval_cad_pcd, gt_cad_pcd)
+        scan2gt_chamfer_dist = getChamferDistance(object_pcd, gt_cad_pcd)
+        print(scan2ret_chamfer_dist)
+        print(ret2gt_chamfer_dist)
+        print(scan2gt_chamfer_dist)
+
+        o3d.visualization.draw_geometries([object_pcd, retrieval_cad_mesh])
+        exit()
+
+        scan2cad_chamfer_dist_list.append(scan2cad_chamfer_dist)
+        retrieval_chamfer_dist_list.append(retrieval_chamfer_dist)
         return True
 
     def addSceneRetrievalResult(self,
