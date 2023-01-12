@@ -156,7 +156,7 @@ class MetricManager(object):
         mean_scan2ret2gt_cd = np.mean(self.scan2ret2gt_cd_list)
         mean_trans_error = np.mean(self.trans_error_list)
         mean_rotate_error = np.mean(self.rotate_error_list)
-        mean_scale_error = np.mean(selrf.scale_error_list)
+        mean_scale_error = np.mean(self.scale_error_list)
         self.summary_writer.add_scalar("RetrievalMean/mean_ret_cls_acc",
                                        mean_ret_cls_acc, self.step)
         self.summary_writer.add_scalar("RetrievalMean/mean_scan2ret_cd",
