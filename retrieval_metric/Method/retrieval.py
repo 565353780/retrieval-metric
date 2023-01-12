@@ -34,4 +34,4 @@ def getOursRetrievalResult(object_pcd,
     #  o3d.visualization.draw_geometries(
     #  [object_pcd, retrieval_cad_mesh])
 
-    return retrieval_cad_mesh
+    return retrieval_cad_mesh, retrieval_cad_model_file_path

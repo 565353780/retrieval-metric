@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import pickle
-
 import numpy as np
 import open3d as o3d
 from torch.utils.tensorboard import SummaryWriter
@@ -14,13 +13,13 @@ from points_shape_detect.Method.trans import normalizePointArray
 from retrieval_metric.Method.time import getCurrentTime
 from retrieval_metric.Method.retrieval import getOursRetrievalResult
 from retrieval_metric.Method.distance import \
-    getChamferDistance, getTransError, getRotateError, getScaleError
+    getClassAccuracy, getChamferDistance, getTransError, getRotateError, getScaleError
 
 
 class MetricManager(object):
 
     def __init__(self):
-        self.retrieval_class_accuracy_list = []
+        self.ret_cls_acc_list = []
         self.scan2ret_cd_list = []
         self.ret2gt_cd_list = []
         self.scan2gt_cd_list = []
@@ -30,14 +29,14 @@ class MetricManager(object):
         self.scale_error_list = []
 
         self.step = 0
-        self.summary_writer = SummaryWriter("./logs/" + getCurrentTime() + "/")
+        #  self.summary_writer = SummaryWriter("./logs/" + getCurrentTime() + "/")
 
         self.loadScan2CADDataset()
         self.loadUniformCADFeature()
         return
 
     def reset(self):
-        self.retrieval_class_accuracy_list = []
+        self.ret_cls_acc_list = []
         self.scan2ret_cd_list = []
         self.ret2gt_cd_list = []
         self.scan2gt_cd_list = []
@@ -68,6 +67,16 @@ class MetricManager(object):
             self.uniform_feature_dict = pickle.load(f)
         return True
 
+    def predictObjectRetrievalResult(self, object_pcd, print_progress=False):
+        mode_list = ['Scan2CAD', 'ISR', 'MV ROCA', 'ours']
+        mode = "ours"
+        assert mode in mode_list
+
+        if mode == 'ours':
+            return getOursRetrievalResult(object_pcd,
+                                          self.uniform_feature_dict,
+                                          print_progress)
+
     def addObjectRetrievalResult(self,
                                  scannet_scene_name,
                                  object_file_name,
@@ -97,12 +106,13 @@ class MetricManager(object):
         gt_cad_mesh.compute_triangle_normals()
         gt_cad_pcd = gt_cad_mesh.sample_points_uniformly(sample_point_num)
 
-        retrieval_cad_mesh = getOursRetrievalResult(object_pcd,
-                                                    self.uniform_feature_dict,
-                                                    print_progress)
+        retrieval_cad_mesh, retrieval_mesh_file_path = self.predictObjectRetrievalResult(
+            object_pcd, print_progress)
         retrieval_cad_pcd = retrieval_cad_mesh.sample_points_uniformly(
             sample_point_num)
 
+        ret_cls_acc = getClassAccuracy(shapenet_model_file_path,
+                                       retrieval_mesh_file_path)
         scan2ret_cd = getChamferDistance(object_pcd, retrieval_cad_pcd)
         ret2gt_cd = getChamferDistance(retrieval_cad_pcd, gt_cad_pcd)
         scan2gt_cd = getChamferDistance(object_pcd, gt_cad_pcd)
@@ -113,6 +123,7 @@ class MetricManager(object):
 
         #  o3d.visualization.draw_geometries([object_pcd, retrieval_cad_mesh])
 
+        self.ret_cls_acc_list.append(ret_cls_acc)
         self.scan2ret_cd_list.append(scan2ret_cd)
         self.ret2gt_cd_list.append(ret2gt_cd)
         self.scan2gt_cd_list.append(scan2gt_cd)
@@ -121,6 +132,8 @@ class MetricManager(object):
         self.rotate_error_list.append(rotate_error)
         self.scale_error_list.append(scale_error)
 
+        self.summary_writer.add_scalar("Retrieval/ret_cls_acc", ret_cls_acc,
+                                       self.step)
         self.summary_writer.add_scalar("Retrieval/scan2ret_cd", scan2ret_cd,
                                        self.step)
         self.summary_writer.add_scalar("Retrieval/ret2gt_cd", ret2gt_cd,
@@ -136,6 +149,7 @@ class MetricManager(object):
         self.summary_writer.add_scalar("Pose/scale_error", scale_error,
                                        self.step)
 
+        mean_ret_cls_acc = np.mean(self.ret_cls_acc_list)
         mean_scan2ret_cd = np.mean(self.scan2ret_cd_list)
         mean_ret2gt_cd = np.mean(self.ret2gt_cd_list)
         mean_scan2gt_cd = np.mean(self.scan2gt_cd_list)
@@ -143,6 +157,8 @@ class MetricManager(object):
         mean_trans_error = np.mean(self.trans_error_list)
         mean_rotate_error = np.mean(self.rotate_error_list)
         mean_scale_error = np.mean(selrf.scale_error_list)
+        self.summary_writer.add_scalar("RetrievalMean/mean_ret_cls_acc",
+                                       mean_ret_cls_acc, self.step)
         self.summary_writer.add_scalar("RetrievalMean/mean_scan2ret_cd",
                                        mean_scan2ret_cd, self.step)
         self.summary_writer.add_scalar("RetrievalMean/mean_ret2gt_cd",

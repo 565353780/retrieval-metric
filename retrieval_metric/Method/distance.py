@@ -5,6 +5,16 @@ import numpy as np
 import open3d as o3d
 
 
+def getClassAccuracy(gt_mesh_file_path, retrieval_mesh_file_path):
+    gt_class = gt_mesh_file_path.split("ShapeNetCore.v2/")[1].split("/")[0]
+    retrieval_class = retrieval_mesh_file_path.split(
+        "ShapeNetCore.v2/")[1].split("/")[0]
+
+    if gt_class == retrieval_class:
+        return 1
+    return 0
+
+
 def getChamferDistance(pcd_1, pcd_2):
     dist_1_array = np.array(pcd_1.compute_point_cloud_distance(pcd_2))
     dist_2_array = np.array(pcd_2.compute_point_cloud_distance(pcd_1))
