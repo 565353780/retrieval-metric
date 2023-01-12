@@ -114,14 +114,18 @@ class MetricManager(object):
         self.scan2gt_cd_list.append(scan2gt_cd)
         self.scan2ret2gt_cd_list.append(scan2ret2gt_cd)
 
-        self.summary_writer.add_scalar("Retrieval/scan2ret_cd", scan2ret_cd,
-                                       self.step)
-        self.summary_writer.add_scalar("Retrieval/ret2gt_cd", ret2gt_cd,
-                                       self.step)
-        self.summary_writer.add_scalar("Retrieval/scan2gt_cd", scan2gt_cd,
-                                       self.step)
-        self.summary_writer.add_scalar("Retrieval/scan2ret2gt_cd",
-                                       scan2ret2gt_cd, self.step)
+        mean_scan2ret_cd = np.mean(self.scan2ret_cd_list)
+        mean_ret2gt_cd = np.mean(self.ret2gt_cd_list)
+        mean_scan2gt_cd = np.mean(self.scan2gt_cd_list)
+        mean_scan2ret2gt_cd = np.mean(self.scan2ret2gt_cd_list)
+        self.summary_writer.add_scalar("Retrieval/mean_scan2ret_cd",
+                                       mean_scan2ret_cd, self.step)
+        self.summary_writer.add_scalar("Retrieval/mean_ret2gt_cd",
+                                       mean_ret2gt_cd, self.step)
+        self.summary_writer.add_scalar("Retrieval/mean_scan2gt_cd",
+                                       mean_scan2gt_cd, self.step)
+        self.summary_writer.add_scalar("Retrieval/mean_scan2ret2gt_cd",
+                                       mean_scan2ret2gt_cd, self.step)
         self.step += 1
         return True
 
