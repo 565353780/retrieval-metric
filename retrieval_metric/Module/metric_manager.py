@@ -29,7 +29,7 @@ class MetricManager(object):
         self.scale_error_list = []
 
         self.step = 0
-        #  self.summary_writer = SummaryWriter("./logs/" + getCurrentTime() + "/")
+        self.summary_writer = SummaryWriter("./logs/" + getCurrentTime() + "/")
 
         self.loadScan2CADDataset()
         self.loadUniformCADFeature()
