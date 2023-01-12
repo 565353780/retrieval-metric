@@ -4,6 +4,7 @@
 import pickle
 import numpy as np
 import open3d as o3d
+from copy import deepcopy
 from torch.utils.tensorboard import SummaryWriter
 
 from scan2cad_dataset_manage.Module.object_model_map_manager import \
@@ -120,6 +121,16 @@ class MetricManager(object):
         trans_error = getTransError(object_pcd, retrieval_cad_pcd)
         rotate_error = getRotateError(object_pcd, retrieval_cad_pcd)
         scale_error = getScaleError(object_pcd, retrieval_cad_pcd)
+
+        #  if rotate_error > 30:
+        #  mesh1 = deepcopy(retrieval_cad_mesh)
+        #  mesh2 = deepcopy(gt_cad_mesh)
+        #  mesh1.translate([1, 0, 0])
+        #  mesh2.translate([2, 0, 0])
+        #  obb1 = mesh1.get_oriented_bounding_box()
+        #  obb2 = mesh2.get_oriented_bounding_box()
+        #  o3d.visualization.draw_geometries(
+        #  [object_pcd, mesh1, mesh2, obb1, obb2])
 
         #  o3d.visualization.draw_geometries([object_pcd, retrieval_cad_mesh])
 

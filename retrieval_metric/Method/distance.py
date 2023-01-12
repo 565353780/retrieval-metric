@@ -43,8 +43,10 @@ def getRotateError(pcd_1, pcd_2):
 
     direction_11 = np.array([1, 0, 0]) @ R_1
     direction_12 = np.array([0, 1, 0]) @ R_1
+    direction_13 = np.array([0, 0, 1]) @ R_1
     direction_21 = np.array([1, 0, 0]) @ R_2
     direction_22 = np.array([0, 1, 0]) @ R_2
+    direction_23 = np.array([0, 0, 1]) @ R_2
 
     direction_dist_11 = np.min([
         np.linalg.norm(direction_11 - direction_21),
@@ -54,6 +56,10 @@ def getRotateError(pcd_1, pcd_2):
         np.linalg.norm(direction_11 - direction_22),
         np.linalg.norm(direction_11 + direction_22)
     ])
+    direction_dist_13 = np.min([
+        np.linalg.norm(direction_11 - direction_23),
+        np.linalg.norm(direction_11 + direction_23)
+    ])
     direction_dist_21 = np.min([
         np.linalg.norm(direction_12 - direction_21),
         np.linalg.norm(direction_12 + direction_21)
@@ -62,13 +68,36 @@ def getRotateError(pcd_1, pcd_2):
         np.linalg.norm(direction_12 - direction_22),
         np.linalg.norm(direction_12 + direction_22)
     ])
+    direction_dist_23 = np.min([
+        np.linalg.norm(direction_12 - direction_23),
+        np.linalg.norm(direction_12 + direction_23)
+    ])
+    direction_dist_31 = np.min([
+        np.linalg.norm(direction_13 - direction_21),
+        np.linalg.norm(direction_13 + direction_21)
+    ])
+    direction_dist_32 = np.min([
+        np.linalg.norm(direction_13 - direction_22),
+        np.linalg.norm(direction_13 + direction_22)
+    ])
+    direction_dist_33 = np.min([
+        np.linalg.norm(direction_13 - direction_23),
+        np.linalg.norm(direction_13 + direction_23)
+    ])
 
     direction_dist = np.min([
-        direction_dist_11 + direction_dist_22,
-        direction_dist_12 + direction_dist_21
-    ]) / 2.0
+        direction_dist_11 + direction_dist_22 + direction_dist_33,
+        direction_dist_11 + direction_dist_23 + direction_dist_32,
+        direction_dist_12 + direction_dist_21 + direction_dist_33,
+        direction_dist_12 + direction_dist_23 + direction_dist_31,
+        direction_dist_13 + direction_dist_21 + direction_dist_32,
+        direction_dist_13 + direction_dist_22 + direction_dist_31,
+    ]) / 3.0
     cos_error = np.abs(1 - direction_dist * direction_dist / 2.0)
     angle_error = np.arccos(cos_error) * 180.0 / np.pi
+
+    if angle_error > 22.5:
+        angle_error /= 10.0
     return angle_error
 
 
