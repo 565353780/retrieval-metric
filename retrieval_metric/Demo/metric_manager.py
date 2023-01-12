@@ -9,7 +9,9 @@ from retrieval_metric.Module.metric_manager import MetricManager
 
 
 def demo():
+    print_progress = True
+
     metric_manager = MetricManager()
 
-    metric_manager.getAllMetric()
+    metric_manager.getAllMetric(print_progress)
     return True

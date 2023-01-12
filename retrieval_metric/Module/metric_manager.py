@@ -3,9 +3,9 @@
 
 import numpy as np
 import open3d as o3d
+from scan2cad_dataset_manage.Module.object_model_map_manager import \
+    ObjectModelMapManager
 from tqdm import tqdm
-
-from scan2cad_dataset_manage.Module.object_model_map_manager import ObjectModelMapManager
 
 
 class MetricManager(object):
@@ -38,15 +38,22 @@ class MetricManager(object):
 
         for_data = object_file_name_list
         if print_progress:
-            print("[INFO][MetricManager::addSceneRetrievalResult]")
-            print("\t start add retrieval results for all objects in scene [" +
-                  scannet_scene_name + "]...")
+            #  print("[INFO][MetricManager::addSceneRetrievalResult]")
+            #  print("\t start add retrieval results for all objects in scene [" +
+            #  scannet_scene_name + "]...")
             for_data = tqdm(for_data)
         for object_file_name in for_data:
             self.addObjectRetrievalResult(object_file_name)
         return True
 
     def getAllMetric(self, print_progress=False):
-        for scannet_scene_name in self.object_model_map_manager.scene_name_list:
+        scene_num_str = str(len(self.object_model_map_manager.scene_name_list))
+        for i, scannet_scene_name in enumerate(
+                self.object_model_map_manager.scene_name_list):
+            if print_progress:
+                print("[INFO][MetricManager::getAllMetric]")
+                print("\t start add retrieval results for scene [" +
+                      scannet_scene_name + "], " + str(i + 1) + "/" +
+                      scene_num_str + "...")
             self.addSceneRetrievalResult(scannet_scene_name, print_progress)
         return True
