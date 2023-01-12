@@ -80,12 +80,16 @@ class MetricManager(object):
         scan2gt_cd = getChamferDistance(object_pcd, gt_cad_pcd)
         scan2ret2gt_cd = scan2ret_cd - scan2gt_cd
 
+        print(scan2ret_cd)
+        print(ret2gt_cd)
+        print(scan2gt_cd)
+        print(scan2ret2gt_cd)
         #  o3d.visualization.draw_geometries([object_pcd, retrieval_cad_mesh])
 
-        scan2ret_cd_list.append(scan2ret_cd)
-        ret2gt_cd_list.append(ret2gt_cd)
-        scan2gt_cd_list.append(scan2gt_cd)
-        scan2ret2gt_cd_list.append(scan2ret2gt_cd)
+        self.scan2ret_cd_list.append(scan2ret_cd)
+        self.ret2gt_cd_list.append(ret2gt_cd)
+        self.scan2gt_cd_list.append(scan2gt_cd)
+        self.scan2ret2gt_cd_list.append(scan2ret2gt_cd)
         return True
 
     def addSceneRetrievalResult(self,
