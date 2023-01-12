@@ -17,9 +17,10 @@ class MetricManager(object):
 
     def __init__(self):
         self.retrieval_class_accuracy_list = []
-        self.scan2ret_chamfer_dist_list = []
-        self.ret2gt_chamfer_dist_list = []
-        self.scan2gt_chamfer_dist_list = []
+        self.scan2ret_cd_list = []
+        self.ret2gt_cd_list = []
+        self.scan2gt_cd_list = []
+        self.scan2ret2gt_cd_list = []
         self.trans_error_list = []
         self.rotate_error_list = []
         self.scale_error_list = []
@@ -74,19 +75,17 @@ class MetricManager(object):
         retrieval_cad_pcd = retrieval_cad_mesh.sample_points_uniformly(
             sample_point_num)
 
-        scan2ret_chamfer_dist = getChamferDistance(object_pcd,
-                                                   retrieval_cad_pcd)
-        ret2gt_chamfer_dist = getChamferDistance(retrieval_cad_pcd, gt_cad_pcd)
-        scan2gt_chamfer_dist = getChamferDistance(object_pcd, gt_cad_pcd)
-        print(scan2ret_chamfer_dist)
-        print(ret2gt_chamfer_dist)
-        print(scan2gt_chamfer_dist)
+        scan2ret_cd = getChamferDistance(object_pcd, retrieval_cad_pcd)
+        ret2gt_cd = getChamferDistance(retrieval_cad_pcd, gt_cad_pcd)
+        scan2gt_cd = getChamferDistance(object_pcd, gt_cad_pcd)
+        scan2ret2gt_cd = scan2ret_cd - scan2gt_cd
 
-        o3d.visualization.draw_geometries([object_pcd, retrieval_cad_mesh])
-        exit()
+        #  o3d.visualization.draw_geometries([object_pcd, retrieval_cad_mesh])
 
-        scan2cad_chamfer_dist_list.append(scan2cad_chamfer_dist)
-        retrieval_chamfer_dist_list.append(retrieval_chamfer_dist)
+        scan2ret_cd_list.append(scan2ret_cd)
+        ret2gt_cd_list.append(ret2gt_cd)
+        scan2gt_cd_list.append(scan2gt_cd)
+        scan2ret2gt_cd_list.append(scan2ret2gt_cd)
         return True
 
     def addSceneRetrievalResult(self,
