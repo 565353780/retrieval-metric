@@ -99,6 +99,10 @@ class MetricManager(object):
         points = normalizePointArray(points)
         object_pcd.points = o3d.utility.Vector3dVector(points)
 
+        # try error value
+        #  random_trans = (np.random.rand(3) - 0.5) / 5
+        #  object_pcd.translate(random_trans)
+
         gt_cad_mesh = o3d.io.read_triangle_mesh(shapenet_model_file_path)
         points = np.array(gt_cad_mesh.vertices)
         points = normalizePointArray(points)
@@ -131,6 +135,14 @@ class MetricManager(object):
         #  obb2 = mesh2.get_oriented_bounding_box()
         #  o3d.visualization.draw_geometries(
         #  [object_pcd, mesh1, mesh2, obb1, obb2])
+
+        #  if scan2ret2gt_cd < 0:
+        #  mesh1 = deepcopy(retrieval_cad_mesh)
+        #  mesh2 = deepcopy(gt_cad_mesh)
+        #  mesh1.translate([1, 0, 0])
+        #  mesh2.translate([2, 0, 0])
+        #  o3d.visualization.draw_geometries(
+        #  [object_pcd, mesh1, mesh2])
 
         #  o3d.visualization.draw_geometries([object_pcd, retrieval_cad_mesh])
 
